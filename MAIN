@@ -1,0 +1,120 @@
+import operator
+
+import random
+import math
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn import metrics
+
+# Speciffy the total iteration ammount with different degrees of Polynomial Regression
+total_degree = 4
+
+degree = 1
+MSE_list = []
+
+# Generate a dataset of x and y
+dataset_x = []
+dataset_y = []
+
+for i in range(100):
+    # x is a random number between 0 and 1 with uniform distribution
+    x = random.uniform(0, 1)
+    # e is a random number with mean of 0 and standard dev. of 0.05
+    e = random.gauss(0, 0.05)
+    # y equals to cos(1.5𝜋∗x) + e
+    y = math.cos(1.5 * math.pi * x) + e
+
+    # Append x and y into the dataset
+    dataset_x.append(x)
+    dataset_y.append(y)
+
+
+# Iterate Polynomial Regression model
+for i in range(total_degree):
+    
+    # Randomly seperate the dataset into train and test dataset, with 25% of data as the testing data
+    x_train, x_test, y_train, y_test = train_test_split(dataset_x, dataset_y, test_size = 0.25)
+
+    # Fitting Polynomial Regression to the dataset
+    poly = PolynomialFeatures(degree = degree)
+    model = LinearRegression()
+
+    mod_x_train = []
+    for i in x_train:
+        temp_list = []
+        temp_list.append(i)
+        mod_x_train.append(temp_list)
+
+    mod_x_test = []
+    for i in x_test:
+        temp_list = []
+        temp_list.append(i)
+        mod_x_test.append(temp_list)
+
+    mod_x_train = poly.fit_transform(mod_x_train)
+    mod_x_test = poly.fit_transform(mod_x_test)
+
+    model.fit(mod_x_train, y_train)
+
+    # Output y using the model based on the train dataset will be used later to plot the model
+    y_plot = model.predict(mod_x_train)
+
+    # Predict the y using the model based on the test dataset
+    y_pred = model.predict(mod_x_test)
+
+
+    # Plot dataset_x, dataset_y
+    plt.scatter(dataset_x, dataset_y, s = 10, color = "green")
+
+    # Plot the actual function, y = cos(1.5𝜋∗x), x start at 0 and end at 1
+    x_true = np.linspace(0, 1, num = 100)
+    y_true = np.cos(1.5 * math.pi * x_true)
+
+    plt.plot(x_true, y_true, color = "blue", label = "Actual Function")
+
+    # Plot the Polynomial Regression model based on the train dataset
+    sort_axis = operator.itemgetter(0)
+    sorted_zip = sorted(zip(x_train, y_plot), key = sort_axis)
+    x_train, y_plot = zip(*sorted_zip)
+    plt.plot(x_train, y_plot, color = "red", label = "Regression Model")
+
+    # Show the complete plot
+    str_temp = "Polynomial Regression with the Degree of " + str(degree)
+    plt.title(str_temp)
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+
+    # Calculate the Mean Squared Error
+    MSE = metrics.mean_squared_error(y_test, y_pred)
+    MSE_list.append(MSE)
+
+
+    degree += 1
+
+
+# Output the MSE
+str1 = "Degree".center(20)
+str2 = "MSE".center(20)
+print(str1 + str2)
+
+for i in range(40):
+    print("=", end = "")
+print("")
+
+for i in range(total_degree):
+    str3 = str(i + 1).center(20)
+    str4 = str(round(MSE_list[i], 5)).center(20)
+    print(str3 + str4)
+
+for i in range(40):
+    print("=", end = "")
+print("")
